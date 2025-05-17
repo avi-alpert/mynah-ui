@@ -24,6 +24,7 @@ const emptyDataModelObject: Required<MynahUIDataModel> = {
   quickActionCommands: [],
   contextCommands: [],
   promptInputPlaceholder: '',
+  promptTopBarPlaceholder: 'Drag items here to pin to context',
   promptInputText: '',
   promptInputLabel: '',
   promptInputVisible: true,

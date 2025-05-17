@@ -95,6 +95,10 @@ export interface MynahUIDataModel {
   */
   promptInputPlaceholder?: string;
   /**
+   * Placeholder to be shown on prompt top bar
+   */
+  promptTopBarPlaceholder?: string;
+  /**
   * Prompt input text
   */
   promptInputText?: string;

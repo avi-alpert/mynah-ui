@@ -23,6 +23,7 @@ import { PromptOptions } from './prompt-input/prompt-options';
 import { PromptInputStopButton } from './prompt-input/prompt-input-stop-button';
 import { Button } from '../button';
 import { Icon, MynahIcons } from '../icon';
+import { PromptTopBar } from './prompt-input/prompt-top-bar/prompt-top-bar';
 
 // 96 extra is added as a threshold to allow for attachments
 // We ignore this for the textual character limit
@@ -58,6 +59,7 @@ export class ChatPromptInput {
   private readonly progressIndicator: PromptInputProgress;
   private readonly promptAttachment: PromptAttachment;
   private readonly promptOptions: PromptOptions;
+  private readonly promptTopBar: PromptTopBar;
   private readonly chatPrompt: ExtendedHTMLElement;
   private quickPickItemsSelectorContainer: DetailedListWrapper;
   private promptTextInputLabel: ExtendedHTMLElement;
@@ -152,6 +154,22 @@ export class ChatPromptInput {
       }
     });
 
+    this.promptTopBar = new PromptTopBar({
+      tabId: this.props.tabId,
+      title: '',
+      actionPillConfig: { command: 'Rules', id: 'Rules', label: 'Rules', icon: MynahIcons.CHECK_LIST },
+      actionPillItems: [ {
+        commands: [ { command: 'README.txt', label: 'README.txt', icon: MynahIcons.FILE, id: 'README' },
+          { command: 'src', label: 'src', icon: MynahIcons.FOLDER, id: 'src' },
+          { command: 'java-expert.md', label: 'java-expert', icon: MynahIcons.MAGIC, id: 'java' }
+        ]
+      } ],
+      contextItems: [ { command: 'README.txt', label: 'README.txt', icon: MynahIcons.FILE, id: 'README' },
+        { command: 'src', label: 'src', icon: MynahIcons.FOLDER, id: 'src' },
+        { command: 'java-expert.md', label: 'java-expert', icon: MynahIcons.MAGIC, id: 'java' }
+      ]
+    });
+
     this.attachmentWrapper = DomBuilder.getInstance().build({
       type: 'div',
       testId: testIds.prompt.attachmentWrapper,
@@ -197,6 +215,7 @@ export class ChatPromptInput {
           type: 'div',
           classNames: [ 'mynah-chat-prompt-input-wrapper' ],
           children: [
+            this.promptTopBar.render,
             this.promptTextInput.render,
             {
               type: 'div',
@@ -408,7 +427,7 @@ export class ChatPromptInput {
         }
       }
     } else {
-      const blockedKeys = [ KeyMap.ENTER, KeyMap.ESCAPE, KeyMap.SPACE, KeyMap.TAB, KeyMap.AT, KeyMap.BACK_SLASH, KeyMap.SLASH ] as string[];
+      const blockedKeys = [ KeyMap.ENTER, KeyMap.ESCAPE, KeyMap.SPACE, KeyMap.TAB, KeyMap.AT, KeyMap.BACK_SLASH, KeyMap.SLASH, KeyMap.ALT ] as string[];
       if (blockedKeys.includes(e.key)) {
         e.preventDefault();
         if (e.key === KeyMap.ESCAPE) {
@@ -423,7 +442,7 @@ export class ChatPromptInput {
             const commandToSend = convertDetailedListItemToQuickActionCommand(targetDetailedListItem);
             if (this.quickPickType === 'context') {
               if (commandToSend.command !== '') {
-                this.handleContextCommandSelection(commandToSend);
+                this.handleContextCommandSelection(commandToSend, e.altKey);
               } else {
                 // Otherwise pass the given text by user
                 const command = this.promptTextInput.getTextInputValue().substring(this.quickPickTriggerIndex, this.promptTextInput.getCursorPos());
@@ -602,7 +621,7 @@ export class ChatPromptInput {
     }
   };
 
-  private readonly handleContextCommandSelection = (dirtyContextCommand: QuickActionCommand): void => {
+  private readonly handleContextCommandSelection = (dirtyContextCommand: QuickActionCommand, pinned?: boolean): void => {
     const contextCommand: QuickActionCommand = {
       ...dirtyContextCommand,
       command: dirtyContextCommand.command.replace(this.markerRemovalRegex, '')
@@ -621,9 +640,14 @@ export class ChatPromptInput {
         tabId: this.props.tabId,
         promptInputCallback: (insert: boolean) => {
           if (insert) {
-            this.promptTextInput.insertContextItem({
-              ...contextCommand,
-            }, this.quickPickTriggerIndex);
+            if (pinned === true) {
+              this.promptTopBar.addContextPill(contextCommand);
+              this.promptTextInput.deleteTextRange(this.quickPickTriggerIndex, this.promptTextInput.getCursorPos());
+            } else {
+              this.promptTextInput.insertContextItem({
+                ...contextCommand,
+              }, this.quickPickTriggerIndex);
+            }
           } else {
             this.promptTextInput.deleteTextRange(this.quickPickTriggerIndex, this.promptTextInput.getCursorPos());
           }
