@@ -49,6 +49,7 @@ import escapeHTML from 'escape-html';
 import './styles/styles.scss';
 import { ThemeBuilder } from './theme-builder/theme-builder';
 import { Commands } from './commands';
+import { renderTodoList, handleTodoAction, handleTodoFormSubmit } from './todo-app';
 
 export const createMynahUI = (initialData?: MynahUIDataModel): MynahUI => {
     const connector = new Connector();
@@ -1074,7 +1075,9 @@ export const createMynahUI = (initialData?: MynahUIDataModel): MynahUI => {
         `);
         },
         onInBodyButtonClicked: (tabId: string, messageId: string, action) => {
-            if (action.id === 'allow-readonly-tools') {
+            if (action.id.startsWith('todo-')) {
+                handleTodoAction(mynahUI, tabId, action);
+            } else if (action.id === 'allow-readonly-tools') {
                 mynahUI.updateChatAnswerWithMessageId(tabId, messageId, {
                     muted: true,
                     header: {
@@ -1231,6 +1234,9 @@ export const createMynahUI = (initialData?: MynahUIDataModel): MynahUI => {
             return false;
         },
         onCustomFormAction: (tabId, action) => {
+            if (action.id === 'todo-submit') {
+                handleTodoFormSubmit(mynahUI, tabId, action);
+            }
             Log(`Custom form action clicked for tab <b>${tabId}</b>:<br/>
       Action Id: <b>${action.id}</b><br/>
       Action Text: <b>${action.text}</b><br/>
@@ -1466,6 +1472,9 @@ export const createMynahUI = (initialData?: MynahUIDataModel): MynahUI => {
                 case Commands.IMAGE_IN_CARD:
                     mynahUI.addChatItem(tabId, exampleImageCard());
                     mynahUI.addChatItem(tabId, defaultFollowUps);
+                    break;
+                case Commands.TODO:
+                    renderTodoList(mynahUI, tabId);
                     break;
                 case Commands.CUSTOM_RENDERER_CARDS:
                     mynahUI.addChatItem(tabId, exampleCustomRendererWithHTMLMarkup());

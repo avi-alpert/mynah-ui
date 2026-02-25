@@ -202,6 +202,12 @@ export const QuickActionCommands: QuickActionCommandGroup[] = [
                 description:
                     'You can set the position of the followups too. By simply setting the type of the ChatItem.',
             },
+            {
+                command: Commands.TODO,
+                icon: MynahIcons.CHECK_LIST,
+                description:
+                    'Open an interactive todo list app. Add, complete, and delete todos through the chat interface.',
+            },
         ],
     },
     {
